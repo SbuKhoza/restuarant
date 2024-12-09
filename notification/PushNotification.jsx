@@ -77,7 +77,7 @@ async function registerForPushNotificationsAsync() {
       console.log(pushTokenString);
       return pushTokenString;
     } catch (e) {
-      // CHANGE: Removed type annotation from error parameter
+      
       handleRegistrationError(`${e}`);
     }
   } else {
