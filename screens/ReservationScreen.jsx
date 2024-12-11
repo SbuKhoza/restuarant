@@ -1,14 +1,14 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 
-const MyResevationScreen = () => {
+const ReservationScreen = () => {
   return (
     <View>
-      <Text>MyResevationScreen</Text>
+      <Text>ReservationScreen</Text>
     </View>
   )
 }
 
-export default MyResevationScreen
+export default ReservationScreen
 
 const styles = StyleSheet.create({})
