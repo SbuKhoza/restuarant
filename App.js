@@ -13,10 +13,13 @@ import { Ionicons } from '@expo/vector-icons';
 
 // Import screens 
 import SplashScreen from './screens/SplashScreen';
+import AuthenticationScreen from './screens/AuthenticationScreen';
 import HomeScreen from './screens/HomeScreen';
 import ReservationScreen from './screens/ReservationScreen';
 import RestaurantScreen from './screens/RestaurantScreen';
 import ProfileScreen from './screens/ProfileScreen';
+import { Provider } from 'react-redux';
+import store from './redux/store';
 
 // Hamburger Menu Component
 const HamburgerMenu = ({ isOpen, toggleMenu }) => {
@@ -105,6 +108,7 @@ const App = () => {
   const Stack = createStackNavigator();
 
   return (
+    <Provider store={store}>
     <NavigationContainer>
       <Stack.Navigator 
         initialRouteName="Splash"
@@ -114,6 +118,7 @@ const App = () => {
         <Stack.Screen name="MainApp" component={MainApp} />
       </Stack.Navigator>
     </NavigationContainer>
+    </Provider>
   );
 };
 

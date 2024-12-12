@@ -1,43 +1,104 @@
-import { StyleSheet, Text, View, ScrollView } from 'react-native'
+import { StyleSheet, Text, View, ScrollView, Image } from 'react-native'
 import React from 'react'
 import Search from '../components/Search'
 import RestuarentCard from '../components/RestuarentCard'
 
 
-export default function HomeScreen() {
-  return (
-    <ScrollView contentContainerStyle={styles.maincont}>
+    export default function HomeScreen() {
+        return (
+            <>
+                <View style={styles.quickMenu}>
+                    <View style={styles.menu1}>
+                        <Image
+                            source={require('../assets/images/kota.jpg')}
+                            style={styles.menuImage}
+                            resizeMode="contain"
+                        />
+                    </View>
 
-        <View style={styles.searchComponent}>
-            <Search/>
-        </View>
+                    <View style={styles.menu1}>
+                        <Image
+                            source={require('../assets/images/cake.jpg')}
+                            style={styles.menuImage}
+                            resizeMode="contain"
+                        />
+                    </View>
 
-        <View style={styles.restuarantCard}>
-            <RestuarentCard/>
-        </View>
+                    <View style={styles.menu1}>
+                        <Image
+                            source={require('../assets/images/chevanon.jpg')}
+                            style={styles.menuImage}
+                            resizeMode="contain"
+                        />
+                    </View>
 
-        
+                    <View style={styles.menu1}>
+                        <Image
+                            source={require('../assets/images/drink.jpg')}
+                            style={styles.menuImage}
+                            resizeMode="contain"
+                        />
+                    </View>
+                </View>
+
+          <ScrollView 
+            contentContainerStyle={styles.container}
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={styles.searchComponent}>
+              <Search/>
+            </View>
       
-    </ScrollView>
-  )
+            <View style={styles.restuarantCard}>
+              <RestuarentCard/>
+            </View>
+          </ScrollView>
+          </>
+        )
 }
 
 const styles = StyleSheet.create({
-    maincont: {
-        flex: 1,
-        alignItems: 'center',
-        width: '100%',
-        padding: 15,
+    container: {
+      flexGrow: 1,
+      alignItems: 'center',
+      width: '100%',
+      backgroundColor: 'white',
+    //   padding: 15,
     },
-
-    restuarantCard: {
-        width: '100%',
-        alignItems: 'center',
-    },
-
     searchComponent: {
-        width: '100%',
-        alignItems: 'center',
-    }
+      width: '100%',
+      alignItems: 'center',
+      marginBottom: 5, // space between Search and RestuarentCard
+    },
+    restuarantCard: {
+      width: '100%',
+      alignItems: 'center',
+    },
 
+    quickMenu: {
+        flexDirection: 'row',
+        width: '100%',
+        paddingTop: 15,
+        paddingLeft: 15,
+        gap: 10,
+        paddingBottom: 0,
+        backgroundColor: 'white',
+    },
+
+    menu1: {
+        width: 70,
+        height: 70,
+        borderRadius: '50%',
+        borderWidth: 3,
+        borderColor: '#17C1FF',
+    },
+
+    menuImage: {
+        width: '100%',
+        height: '100%',
+        objectFit: 'cover',
+        borderRadius: 50,
+    },
+
+    
 })

@@ -7,7 +7,7 @@ const SplashScreen = () => {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      // Navigate to the main app (assuming you're using a stack navigator)
+      // Navigate to AuthenticationScreen instead of MainApp
       navigation.replace('MainApp');
     }, 2000); // 2 seconds
 
@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333', //text color
+    color: '#333',
   },
 });
 
