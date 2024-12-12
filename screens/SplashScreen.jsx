@@ -9,7 +9,7 @@ const SplashScreen = () => {
     const timer = setTimeout(() => {
       // Navigate to AuthenticationScreen instead of MainApp
       navigation.replace('MainApp');
-    }, 2000); // 2 seconds
+    }, 6000); // 2 seconds
 
     return () => clearTimeout(timer);
   }, [navigation]);
@@ -17,7 +17,7 @@ const SplashScreen = () => {
   return (
     <View style={styles.container}>
       <Image 
-        source={require('../assets/icon.png')} 
+        source={require('../assets/images/In Your Mouth.gif')} 
         style={styles.logo}
         resizeMode="contain"
       />
