@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View, ScrollView, Image } from 'react-native'
 import React from 'react'
 import Search from '../components/Search'
-import RestuarentCard from '../components/RestuarentCard'
+import RestaurantCard from '../components/RestaurantCard'
 
 
     export default function HomeScreen() {
@@ -50,7 +50,7 @@ import RestuarentCard from '../components/RestuarentCard'
             </View>
       
             <View style={styles.restuarantCard}>
-              <RestuarentCard/>
+              <RestaurantCard/>
             </View>
           </ScrollView>
           </>
@@ -77,9 +77,10 @@ const styles = StyleSheet.create({
 
     quickMenu: {
         flexDirection: 'row',
+        justifyContent: 'center',
         width: '100%',
         paddingTop: 15,
-        paddingLeft: 15,
+        paddingLeft: 0,
         gap: 10,
         paddingBottom: 0,
         backgroundColor: 'white',

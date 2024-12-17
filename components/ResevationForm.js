@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { 
   StyleSheet, 
   Text, 
@@ -9,31 +9,49 @@ import {
   Platform,
   Alert 
 } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import {
+  updateName,
+  updateEmail,
+  updatePhoneNumber,
+  updateGuests,
+  updateDate,
+  updateTime,
+  submitReservation,
+  resetReservation
+} from '../redux/slices/resevationSlice';
 
 const ReservationForm = () => {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [guests, setGuests] = useState('');
-  const [date, setDate] = useState(new Date());
-  const [time, setTime] = useState(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [showTimePicker, setShowTimePicker] = useState(false);
+  const dispatch = useDispatch();
+  const {
+    name,
+    email,
+    phoneNumber,
+    guests,
+    date,
+    time,
+    isSubmitting,
+    error,
+    reservationSuccess
+  } = useSelector((state) => state.reservation);
+
+  const [showDatePicker, setShowDatePicker] = React.useState(false);
+  const [showTimePicker, setShowTimePicker] = React.useState(false);
 
   const handleDateChange = (event, selectedDate) => {
-    const currentDate = selectedDate || date;
+    const currentDate = selectedDate || new Date(date);
     setShowDatePicker(Platform.OS === 'ios');
-    setDate(currentDate);
+    dispatch(updateDate(currentDate.toDateString()));
   };
 
   const handleTimeChange = (event, selectedTime) => {
-    const currentTime = selectedTime || time;
+    const currentTime = selectedTime || new Date(time);
     setShowTimePicker(Platform.OS === 'ios');
-    setTime(currentTime);
+    dispatch(updateTime(currentTime.toLocaleTimeString()));
   };
 
-  const submitReservation = () => {
+  const handleSubmit = () => {
     // Basic validation
     if (!name || !email || !phoneNumber || !guests) {
       Alert.alert('Error', 'Please fill in all fields');
@@ -41,26 +59,33 @@ const ReservationForm = () => {
     }
 
     // Create reservation object
-    const reservation = {
+    const reservationData = {
       name,
       email,
       phoneNumber,
       guests: parseInt(guests),
-      date: date.toDateString(),
-      time: time.toLocaleTimeString()
+      date,
+      time
     };
 
-    // Here you would typically send the reservation to a backend service
-    Alert.alert('Reservation Submitted', JSON.stringify(reservation, null, 2));
-
-    // Reset form
-    setName('');
-    setEmail('');
-    setPhoneNumber('');
-    setGuests('');
-    setDate(new Date());
-    setTime(new Date());
+    // Dispatch submission
+    dispatch(submitReservation(reservationData));
   };
+
+  // Handle successful submission
+  React.useEffect(() => {
+    if (reservationSuccess) {
+      Alert.alert('Success', 'Your reservation has been submitted!');
+      dispatch(resetReservation());
+    }
+  }, [reservationSuccess]);
+
+  // Handle submission error
+  React.useEffect(() => {
+    if (error) {
+      Alert.alert('Submission Error', error);
+    }
+  }, [error]);
 
   return (
     <ScrollView style={styles.container}>
@@ -70,7 +95,7 @@ const ReservationForm = () => {
         style={styles.input}
         placeholder="Full Name"
         value={name}
-        onChangeText={setName}
+        onChangeText={(text) => dispatch(updateName(text))}
       />
       
       <TextInput
@@ -78,7 +103,7 @@ const ReservationForm = () => {
         placeholder="Email Address"
         keyboardType="email-address"
         value={email}
-        onChangeText={setEmail}
+        onChangeText={(text) => dispatch(updateEmail(text))}
       />
       
       <TextInput
@@ -86,7 +111,7 @@ const ReservationForm = () => {
         placeholder="Phone Number"
         keyboardType="phone-pad"
         value={phoneNumber}
-        onChangeText={setPhoneNumber}
+        onChangeText={(text) => dispatch(updatePhoneNumber(text))}
       />
       
       <TextInput
@@ -94,7 +119,7 @@ const ReservationForm = () => {
         placeholder="Number of Guests"
         keyboardType="numeric"
         value={guests}
-        onChangeText={setGuests}
+        onChangeText={(text) => dispatch(updateGuests(text))}
       />
       
       {/* Date Picker */}
@@ -102,13 +127,13 @@ const ReservationForm = () => {
         style={styles.input} 
         onPress={() => setShowDatePicker(true)}
       >
-        <Text>{date.toLocaleDateString()}</Text>
+        <Text>{date}</Text>
       </TouchableOpacity>
       
       {showDatePicker && (
         <DateTimePicker
           testID="datePicker"
-          value={date}
+          value={new Date(date)}
           mode="date"
           is24Hour={true}
           display="default"
@@ -121,13 +146,13 @@ const ReservationForm = () => {
         style={styles.input} 
         onPress={() => setShowTimePicker(true)}
       >
-        <Text>{time.toLocaleTimeString()}</Text>
+        <Text>{time}</Text>
       </TouchableOpacity>
       
       {showTimePicker && (
         <DateTimePicker
           testID="timePicker"
-          value={time}
+          value={new Date(time)}
           mode="time"
           is24Hour={true}
           display="default"
@@ -137,14 +162,18 @@ const ReservationForm = () => {
       
       <TouchableOpacity 
         style={styles.submitButton} 
-        onPress={submitReservation}
+        onPress={handleSubmit}
+        disabled={isSubmitting}
       >
-        <Text style={styles.submitButtonText}>Submit Reservation</Text>
+        <Text style={styles.submitButtonText}>
+          {isSubmitting ? 'Submitting...' : 'Submit Reservation'}
+        </Text>
       </TouchableOpacity>
     </ScrollView>
   );
 };
 
+// Styles remain the same as in the original component
 const styles = StyleSheet.create({
   container: {
     flex: 1,
