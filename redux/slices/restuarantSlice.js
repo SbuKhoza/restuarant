@@ -1,4 +1,18 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { restaurantApi } from '../../api/Api';
+
+// Async thunk to fetch restaurants
+export const fetchRestaurants = createAsyncThunk(
+  'restaurants/fetchRestaurants',
+  async (_, { rejectWithValue }) => {
+    try {
+      const restaurants = await restaurantApi.getAllRestaurants();
+      return restaurants;
+    } catch (error) {
+      return rejectWithValue(error.response.data.message || 'Failed to fetch restaurants');
+    }
+  }
+);
 
 // Initial state with an empty restaurants array
 const initialState = {
@@ -12,45 +26,40 @@ const restaurantSlice = createSlice({
   name: 'restaurants',
   initialState,
   reducers: {
-    // Reducer to set restaurants from CMS
-    setRestaurants: (state, action) => {
-      state.restaurants = action.payload;
-      state.isLoading = false;
-      state.error = null;
-    },
-    
-    // Reducer to add a new restaurant
+    // Synchronous reducers remain the same
     addRestaurant: (state, action) => {
       state.restaurants.push(action.payload);
     },
     
-    // Reducer to remove a restaurant
     removeRestaurant: (state, action) => {
       state.restaurants = state.restaurants.filter(
         restaurant => restaurant.id !== action.payload
       );
-    },
-    
-    // Reducer to handle loading state
-    setLoading: (state, action) => {
-      state.isLoading = action.payload;
-    },
-    
-    // Reducer to handle errors
-    setError: (state, action) => {
-      state.error = action.payload;
-      state.isLoading = false;
     }
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchRestaurants.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchRestaurants.fulfilled, (state, action) => {
+        state.restaurants = action.payload;
+        state.isLoading = false;
+        state.error = null;
+      })
+      .addCase(fetchRestaurants.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+        state.restaurants = [];
+      });
   }
 });
 
 // Export actions and reducer
 export const { 
-  setRestaurants, 
   addRestaurant, 
-  removeRestaurant,
-  setLoading,
-  setError
+  removeRestaurant 
 } = restaurantSlice.actions;
 
 export default restaurantSlice.reducer;

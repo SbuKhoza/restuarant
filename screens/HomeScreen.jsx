@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
     searchComponent: {
       width: '100%',
       alignItems: 'center',
-      marginBottom: 5, // space between Search and RestuarentCard
+      marginBottom: 5, 
     },
     restuarantCard: {
       width: '100%',

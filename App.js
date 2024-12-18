@@ -22,11 +22,12 @@ import { Provider } from 'react-redux';
 import store from './redux/store';
 
 // Hamburger Menu Component
-const HamburgerMenu = ({ isOpen, toggleMenu }) => {
+const HamburgerMenu = ({ isOpen, toggleMenu, navigation }) => {
   const menuItems = [
-    { label: 'Settings', icon: 'settings' },
-    { label: 'Help', icon: 'help-circle' },
-    { label: 'Logout', icon: 'log-out' }
+    { label: 'Login/Signup', icon: 'log-in', route: 'AuthenticationScreen' },
+    { label: 'Settings', icon: 'settings', route: null },
+    { label: 'Help', icon: 'help-circle', route: null },
+    { label: 'Logout', icon: 'log-out', route: null }
   ];
 
   return isOpen ? (
@@ -36,8 +37,12 @@ const HamburgerMenu = ({ isOpen, toggleMenu }) => {
           key={index} 
           style={styles.menuItem}
           onPress={() => {
-            console.log(`${item.label} pressed`);
             toggleMenu();
+            if (item.route) {
+              navigation.navigate(item.route);
+            } else {
+              console.log(`${item.label} pressed`);
+            }
           }}
         >
           <Ionicons name={item.icon} size={24} color="black" />
@@ -49,7 +54,7 @@ const HamburgerMenu = ({ isOpen, toggleMenu }) => {
 };
 
 // Main App Component with Bottom Tabs
-const MainApp = () => {
+const MainApp = ({ navigation }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const Tab = createBottomTabNavigator();
 
@@ -98,7 +103,11 @@ const MainApp = () => {
         <Tab.Screen name="Profile" component={ProfileScreen} />
       </Tab.Navigator>
 
-      <HamburgerMenu isOpen={isMenuOpen} toggleMenu={toggleMenu} />
+      <HamburgerMenu 
+        isOpen={isMenuOpen} 
+        toggleMenu={toggleMenu} 
+        navigation={navigation} 
+      />
     </View>
   );
 };
@@ -116,6 +125,7 @@ const App = () => {
       >
         <Stack.Screen name="Splash" component={SplashScreen} />
         <Stack.Screen name="MainApp" component={MainApp} />
+        <Stack.Screen name="AuthenticationScreen" component={AuthenticationScreen} />
       </Stack.Navigator>
     </NavigationContainer>
     </Provider>

@@ -1,4 +1,18 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { reservationApi } from '../../api/Api'; 
+
+// Async thunk for reservation submission
+export const submitReservation = createAsyncThunk(
+  'reservation/submitReservation',
+  async (reservationData, { rejectWithValue }) => {
+    try {
+      const response = await reservationApi.createReservation(reservationData);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.response.data.message || 'Reservation failed');
+    }
+  }
+);
 
 const initialState = {
   name: '',
@@ -34,45 +48,33 @@ const reservationSlice = createSlice({
     updateTime: (state, action) => {
       state.time = action.payload;
     },
-    submitReservationStart: (state) => {
-      state.isSubmitting = true;
-      state.error = null;
-      state.reservationSuccess = false;
-    },
-    submitReservationSuccess: (state) => {
-      state.isSubmitting = false;
-      state.reservationSuccess = true;
-      // Reset form after successful submission
-      state.name = '';
-      state.email = '';
-      state.phoneNumber = '';
-      state.guests = '';
-      state.date = new Date().toDateString();
-      state.time = new Date().toLocaleTimeString();
-    },
-    submitReservationFailure: (state, action) => {
-      state.isSubmitting = false;
-      state.error = action.payload;
-      state.reservationSuccess = false;
-    },
     resetReservation: () => initialState
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(submitReservation.pending, (state) => {
+        state.isSubmitting = true;
+        state.error = null;
+        state.reservationSuccess = false;
+      })
+      .addCase(submitReservation.fulfilled, (state) => {
+        state.isSubmitting = false;
+        state.reservationSuccess = true;
+        // Reset form after successful submission
+        state.name = '';
+        state.email = '';
+        state.phoneNumber = '';
+        state.guests = '';
+        state.date = new Date().toDateString();
+        state.time = new Date().toLocaleTimeString();
+      })
+      .addCase(submitReservation.rejected, (state, action) => {
+        state.isSubmitting = false;
+        state.error = action.payload;
+        state.reservationSuccess = false;
+      });
   }
 });
-
-// Async thunk for submission (you'll need to implement the actual API call)
-export const submitReservation = (reservationData) => async (dispatch) => {
-  dispatch(reservationSlice.actions.submitReservationStart());
-  
-  try {
-    // Replace with actual API call
-    // const response = await api.createReservation(reservationData);
-    
-    // Simulated successful submission
-    dispatch(reservationSlice.actions.submitReservationSuccess());
-  } catch (error) {
-    dispatch(reservationSlice.actions.submitReservationFailure(error.message));
-  }
-};
 
 export const { 
   updateName, 

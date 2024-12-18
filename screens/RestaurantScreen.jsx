@@ -1,10 +1,18 @@
-import React from 'react';
-import { StyleSheet, Text, View, FlatList, Image } from 'react-native';
-import { useSelector } from 'react-redux';
+import React, { useEffect } from 'react';
+import { StyleSheet, Text, View, FlatList, Image, ActivityIndicator } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchRestaurants } from '../redux/slices/restuarantSlice';
 
 const RestaurantScreen = () => {
-  // Get restaurants from Redux store
-  const restaurants = useSelector((state) => state.restaurants.restaurants);
+  const dispatch = useDispatch();
+  
+  // Get restaurants and loading state from Redux store
+  const { restaurants, isLoading, error } = useSelector((state) => state.restaurants);
+
+  // Fetch restaurants when component mounts
+  useEffect(() => {
+    dispatch(fetchRestaurants());
+  }, [dispatch]);
 
   // Render individual restaurant item
   const renderRestaurantItem = ({ item }) => (
@@ -22,6 +30,25 @@ const RestaurantScreen = () => {
       </View>
     </View>
   );
+
+  // Handle loading state
+  if (isLoading) {
+    return (
+      <View style={styles.centeredContainer}>
+        <ActivityIndicator size="large" color="#0000ff" />
+        <Text>Loading Restaurants...</Text>
+      </View>
+    );
+  }
+
+  // Handle error state
+  if (error) {
+    return (
+      <View style={styles.centeredContainer}>
+        <Text style={styles.errorText}>Error: {error}</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -43,6 +70,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F5F5F5',
+  },
+  centeredContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   listContainer: {
     padding: 16,
@@ -87,6 +119,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666',
   },
+  errorText: {
+    color: 'red',
+    textAlign: 'center',
+    marginTop: 50,
+    fontSize: 16,
+  }
 });
 
 export default RestaurantScreen;

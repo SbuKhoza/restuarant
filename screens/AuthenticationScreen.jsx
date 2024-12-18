@@ -11,64 +11,52 @@ import {
   Alert
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { 
-  loginStart, 
-  loginSuccess, 
-  loginFailure,
-  signupStart,
-  signupSuccess,
-  signupFailure
-} from '../redux/slices/authSlice';
-import axios from 'axios'; // Assuming you'll use axios for API calls
+import { useNavigation } from '@react-navigation/native';
+import { loginUser, signupUser } from '../redux/slices/authSlice';
 
 export default function AuthenticationScreen() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [username, setUsername] = useState('');
+  const [name, setname] = useState('');
 
   const dispatch = useDispatch();
+  const navigation = useNavigation();
   const { isLoading, error } = useSelector((state) => state.auth);
 
   const handleAuthentication = async () => {
     // Basic validation
-    if (!email || !password || (!isLogin && !username)) {
+    if (!email || !password || (!isLogin && !name)) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
 
     try {
       if (isLogin) {
-        // Login flow
-        dispatch(loginStart());
-        const response = await axios.post('/api/auth/login', { 
+        // Login flow using async thunk
+        const result = await dispatch(loginUser({ 
           email, 
           password 
-        });
+        })).unwrap();
         
-        dispatch(loginSuccess({
-          user: response.data.user,
-          token: response.data.token
-        }));
+        // Navigate to HomeScreen on successful login
+        navigation.replace('HomeScreen');
       } else {
-        // Signup flow
-        dispatch(signupStart());
-        const response = await axios.post('/api/auth/signup', { 
-          username,
+        // Register flow using async thunk
+        const result = await dispatch(signupUser({ 
+          name,
           email, 
           password 
-        });
+        })).unwrap();
         
-        dispatch(signupSuccess({
-          user: response.data.user,
-          token: response.data.token
-        }));
+        // Navigate to HomeScreen on successful registration
+        navigation.replace('HomeScreen');
       }
     } catch (err) {
-      dispatch(isLogin ? loginFailure(err.response?.data?.message || 'Login failed') 
-                       : signupFailure(err.response?.data?.message || 'Signup failed'));
+      console.log("error msg:",err)
       
-      Alert.alert('Authentication Error', err.response?.data?.message || 'An error occurred');
+      Alert.alert('Authentication Error', err || 'An error occurred');
+
     }
   };
 
@@ -80,7 +68,7 @@ export default function AuthenticationScreen() {
       >
         <View style={styles.authContainer}>
           <Text style={styles.title}>
-            {isLogin ? 'Login' : 'Sign Up'}
+            {isLogin ? 'Login' : 'Register'}
           </Text>
 
           {error && (
@@ -92,9 +80,9 @@ export default function AuthenticationScreen() {
           {!isLogin && (
             <TextInput
               style={styles.input}
-              placeholder="Username"
-              value={username}
-              onChangeText={setUsername}
+              placeholder="name"
+              value={name}
+              onChangeText={setname}
               autoCapitalize="none"
             />
           )}
@@ -135,7 +123,7 @@ export default function AuthenticationScreen() {
           >
             <Text style={styles.switchText}>
               {isLogin 
-                ? "Don't have an account? Sign Up" 
+                ? "Don't have an account? Register" 
                 : "Already have an account? Login"}
             </Text>
           </TouchableOpacity>
@@ -145,11 +133,85 @@ export default function AuthenticationScreen() {
   );
 }
 
+
+
 const styles = StyleSheet.create({
-  // ... (previous styles remain the same)
+  container: {
+    flex: 1,
+    backgroundColor: '#f4f6f9', // Soft light blue-gray background
+  },
+  keyboardContainer: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  authContainer: {
+    backgroundColor: 'white',
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 8,
+    marginHorizontal: 20,
+    paddingVertical: 40,
+    paddingHorizontal: 25,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#333',
+    textAlign: 'center',
+    marginBottom: 25,
+  },
+  input: {
+    backgroundColor: '#f8f9fa',
+    borderWidth: 1,
+    borderColor: '#e9ecef',
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 15,
+    fontSize: 16,
+    marginBottom: 15,
+    color: '#495057',
+  },
+  authButton: {
+    backgroundColor: '#007bff', // Vibrant blue
+    borderRadius: 10,
+    paddingVertical: 15,
+    alignItems: 'center',
+    marginTop: 10,
+    shadowColor: '#007bff',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  authButtonText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  switchText: {
+    color: '#6c757d',
+    textAlign: 'center',
+    marginTop: 20,
+    fontSize: 16,
+  },
   errorText: {
-    color: 'red',
+    color: '#dc3545', // Bootstrap-like error red
     textAlign: 'center',
     marginBottom: 15,
-  }
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  disabledButton: {
+    backgroundColor: '#6c757d', // Muted gray for disabled state
+    opacity: 0.7,
+  },
 });
