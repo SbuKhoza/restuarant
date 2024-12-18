@@ -5,7 +5,7 @@ const BASE_URL = 'https://restaurent-cms.onrender.com/api';
 // Create an axios instance with base configuration
 const Api = axios.create({
   baseURL: BASE_URL,
-  timeout: 30000, // Added timeout to prevent hanging requests
+  timeout: 40000, // Added timeout to prevent hanging requests
   headers: {
     'Content-Type': 'application/json',
   }
@@ -91,6 +91,15 @@ export const authApi = {
       console.error('Signup API Error:', error.message);
       throw error;
     }
+  },
+  getUserProfile: async () => {
+    try {
+      const response = await Api.get('/user/profile');
+      return response.data;
+    } catch (error) {
+      console.error('Get User Profile Error:', error.message);
+      throw error;
+    }
   }
 };
 
@@ -116,7 +125,6 @@ export const userApi = {
   }
 };
 
-// Similar error handling added to other API methods
 export const restaurantApi = {
   getAllRestaurants: async () => {
     try {

@@ -101,6 +101,7 @@ const MainApp = ({ navigation }) => {
         <Tab.Screen name="Reservation" component={ReservationScreen} />
         <Tab.Screen name="Restaurants" component={RestaurantScreen} />
         <Tab.Screen name="Profile" component={ProfileScreen} />
+        
       </Tab.Navigator>
 
       <HamburgerMenu 

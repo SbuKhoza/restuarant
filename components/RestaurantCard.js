@@ -5,10 +5,22 @@ import {
   Text, 
   View, 
   FlatList, 
-  ActivityIndicator 
+  ActivityIndicator,
+  Dimensions,
+  Platform,
+  StatusBar 
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchRestaurants } from '../redux/slices/restuarantSlice';
+
+// Get screen dimensions
+const { width, height } = Dimensions.get('window');
+
+// Calculate responsive sizes
+const CARD_WIDTH = width * 0.9;
+const CARD_HEIGHT = height * 0.25;
+const NAME_FONT_SIZE = width * 0.07;
+const DETAIL_FONT_SIZE = width * 0.04;
 
 export default function RestaurantCard() {
   const dispatch = useDispatch();
@@ -24,13 +36,29 @@ export default function RestaurantCard() {
   // Render individual restaurant card
   const renderRestaurantCard = ({ item }) => (
     <View style={styles.restcard}>
-      <Image 
-        source={{ uri: item.imageUri }} 
-        style={styles.restaurantImage}
-        resizeMode="cover"
-      />
-      <Text style={styles.textName}>{item.name}</Text>
-      <View style={styles.CardOverlay} />
+      <View style={styles.CardOverlay}>
+        <Text 
+          style={styles.textName} 
+          numberOfLines={2} 
+          adjustsFontSizeToFit
+        >
+          {item.name}
+        </Text>
+        <View style={styles.detailsContainer}>
+          <Text 
+            style={styles.textLocation} 
+            numberOfLines={1}
+          >
+            {item.location}
+          </Text>
+          <Text 
+            style={styles.textCuisine} 
+            numberOfLines={1}
+          >
+            {item.cuisine}
+          </Text>
+        </View>
+      </View>
     </View>
   );
 
@@ -38,7 +66,10 @@ export default function RestaurantCard() {
   if (isLoading) {
     return (
       <View style={styles.centeredContainer}>
-        <ActivityIndicator size="large" color="#0000ff" />
+        <ActivityIndicator 
+          size="large" 
+          color="#0000ff" 
+        />
         <Text>Loading Restaurants...</Text>
       </View>
     );
@@ -57,8 +88,17 @@ export default function RestaurantCard() {
     <FlatList
       data={restaurants}
       renderItem={renderRestaurantCard}
-      keyExtractor={(item) => item.id.toString()}
+      keyExtractor={(item) => item._id}
       contentContainerStyle={styles.container}
+      showsVerticalScrollIndicator={false}
+      removeClippedSubviews={true}
+      maxToRenderPerBatch={10}
+      initialNumToRender={5}
+      getItemLayout={(data, index) => ({
+        length: CARD_HEIGHT,
+        offset: CARD_HEIGHT * index,
+        index,
+      })}
     />
   );
 }
@@ -66,48 +106,70 @@ export default function RestaurantCard() {
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+    paddingBottom: 20,
   },
   centeredContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   restcard: {
-    width: '95%',
-    height: 200,
+    width: CARD_WIDTH,
+    height: CARD_HEIGHT,
     borderRadius: 15,
     borderWidth: 2,
     borderColor: 'tomato',
-    marginTop: 10,
+    marginVertical: 10,
     backgroundColor: 'black',
-  },
-  restaurantImage: {
-    width: '100%',
-    position: 'relative',
-    height: '100%',
-    borderRadius: 15,
+    alignSelf: 'center',
+    
+    // Shadow for iOS
+    shadowColor: '#000',
+    shadowOffset: { 
+      width: 0, 
+      height: 2 
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    
+    // Elevation for Android
+    elevation: 5,
   },
   CardOverlay: {
     width: '100%',
-    height: 100,
+    height: '100%',
     position: 'absolute',
-    bottom: 0,
     backgroundColor: 'rgba(0,0,0,.5)',
-    borderBottomRightRadius: 15,
-    borderBottomLeftRadius: 15,
+    borderRadius: 15,
+    padding: 15,
+    justifyContent: 'space-between',
   },
   textName: {
-    padding: 5,
-    position: 'absolute',
-    bottom: 50,
     color: 'white',
-    zIndex: 1,
     fontWeight: 'bold',
-    fontStyle: 'normal',
-    fontSize: 30,
+    fontSize: NAME_FONT_SIZE,
+    marginBottom: 10,
+  },
+  detailsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+  },
+  textLocation: {
+    color: 'white',
+    fontSize: DETAIL_FONT_SIZE,
+    flex: 1,
+    marginRight: 10,
+  },
+  textCuisine: {
+    color: 'white',
+    fontSize: DETAIL_FONT_SIZE,
   },
   errorText: {
     color: 'red',
     textAlign: 'center',
+    fontSize: 16,
   }
 });

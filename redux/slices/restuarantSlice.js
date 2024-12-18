@@ -9,7 +9,20 @@ export const fetchRestaurants = createAsyncThunk(
       const restaurants = await restaurantApi.getAllRestaurants();
       return restaurants;
     } catch (error) {
-      return rejectWithValue(error.response.data.message || 'Failed to fetch restaurants');
+      console.error('Fetch Restaurants Error:', error);
+      
+      // More comprehensive error handling
+      const errorMessage = 
+        error.response?.data?.message || 
+        error.message || 
+        'Failed to fetch restaurants';
+      
+      // Check for specific authentication errors
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        return rejectWithValue('Authentication failed. Please log in again.');
+      }
+      
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -35,6 +48,11 @@ const restaurantSlice = createSlice({
       state.restaurants = state.restaurants.filter(
         restaurant => restaurant.id !== action.payload
       );
+    },
+
+    // Clear error state
+    clearError: (state) => {
+      state.error = null;
     }
   },
   extraReducers: (builder) => {
@@ -50,7 +68,7 @@ const restaurantSlice = createSlice({
       })
       .addCase(fetchRestaurants.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
+        state.error = action.payload || 'Failed to fetch restaurants';
         state.restaurants = [];
       });
   }
@@ -59,7 +77,8 @@ const restaurantSlice = createSlice({
 // Export actions and reducer
 export const { 
   addRestaurant, 
-  removeRestaurant 
+  removeRestaurant,
+  clearError
 } = restaurantSlice.actions;
 
 export default restaurantSlice.reducer;

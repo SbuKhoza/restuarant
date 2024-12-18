@@ -40,7 +40,7 @@ export default function AuthenticationScreen() {
         })).unwrap();
         
         // Navigate to HomeScreen on successful login
-        navigation.replace('HomeScreen');
+        navigation.replace('MainApp');
       } else {
         // Register flow using async thunk
         const result = await dispatch(signupUser({ 
@@ -50,7 +50,7 @@ export default function AuthenticationScreen() {
         })).unwrap();
         
         // Navigate to HomeScreen on successful registration
-        navigation.replace('HomeScreen');
+        navigation.replace('MainApp');
       }
     } catch (err) {
       console.log("error msg:",err)

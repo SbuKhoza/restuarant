@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { StyleSheet, Text, View, FlatList, Image, ActivityIndicator } from 'react-native';
+import { StyleSheet, Text, View, FlatList, ActivityIndicator } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchRestaurants } from '../redux/slices/restuarantSlice';
 
@@ -17,16 +17,10 @@ const RestaurantScreen = () => {
   // Render individual restaurant item
   const renderRestaurantItem = ({ item }) => (
     <View style={styles.restaurantItem}>
-      {item.imageUri && (
-        <Image 
-          source={{ uri: item.imageUri }} 
-          style={styles.restaurantImage} 
-        />
-      )}
       <View style={styles.restaurantDetails}>
         <Text style={styles.restaurantName}>{item.name}</Text>
-        <Text style={styles.restaurantDescription}>{item.description}</Text>
-        <Text style={styles.restaurantAddress}>{item.address}</Text>
+        <Text style={styles.restaurantLocation}>{item.location}</Text>
+        <Text style={styles.restaurantCuisine}>{item.cuisine}</Text>
       </View>
     </View>
   );
@@ -58,7 +52,7 @@ const RestaurantScreen = () => {
         <FlatList
           data={restaurants}
           renderItem={renderRestaurantItem}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={(item) => item._id}
           contentContainerStyle={styles.listContainer}
         />
       )}
@@ -80,7 +74,6 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   restaurantItem: {
-    flexDirection: 'row',
     backgroundColor: 'white',
     marginBottom: 16,
     borderRadius: 10,
@@ -89,28 +82,21 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
-  },
-  restaurantImage: {
-    width: 100,
-    height: 100,
-    borderTopLeftRadius: 10,
-    borderBottomLeftRadius: 10,
+    padding: 15,
   },
   restaurantDetails: {
     flex: 1,
-    padding: 12,
-    justifyContent: 'center',
   },
   restaurantName: {
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 4,
   },
-  restaurantDescription: {
+  restaurantLocation: {
     color: '#666',
     marginBottom: 4,
   },
-  restaurantAddress: {
+  restaurantCuisine: {
     color: '#999',
   },
   emptyText: {

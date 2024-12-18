@@ -9,7 +9,7 @@ const SplashScreen = () => {
     const timer = setTimeout(() => {
       // Navigate to AuthenticationScreen instead of MainApp
       navigation.replace('MainApp');
-    }, 6000); // 2 seconds
+    }, 3000); // 2 seconds
 
     return () => clearTimeout(timer);
   }, [navigation]);
