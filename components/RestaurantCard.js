@@ -22,6 +22,14 @@ const CARD_HEIGHT = height * 0.25;
 const NAME_FONT_SIZE = width * 0.07;
 const DETAIL_FONT_SIZE = width * 0.04;
 
+// Fallback image handling
+const fallbackImages = {
+  italian: require('../assets/images/kota.jpg'),
+  mexican: require('../assets/images/cake.jpg'),
+  chinese: require('../assets/images/african.jpeg'),
+  default: require('../assets/images/african.jpeg'),
+};
+
 export default function RestaurantCard() {
   const dispatch = useDispatch();
   
@@ -33,34 +41,81 @@ export default function RestaurantCard() {
     dispatch(fetchRestaurants());
   }, [dispatch]);
 
+  // Get fallback image with robust handling
+  const getFallbackImage = (cuisine) => {
+    if (!cuisine) return fallbackImages.default;
+    
+    // Convert to lowercase and try to match
+    const lowerCuisine = cuisine.toLowerCase();
+    
+    // Check for exact or partial match
+    for (let key in fallbackImages) {
+      if (lowerCuisine.includes(key)) {
+        return fallbackImages[key];
+      }
+    }
+    
+    // Return default if no match
+    return fallbackImages.default;
+  };
+
   // Render individual restaurant card
-  const renderRestaurantCard = ({ item }) => (
-    <View style={styles.restcard}>
-      <View style={styles.CardOverlay}>
-        <Text 
-          style={styles.textName} 
-          numberOfLines={2} 
-          adjustsFontSizeToFit
-        >
-          {item.name}
-        </Text>
-        <View style={styles.detailsContainer}>
+  const renderRestaurantCard = ({ item }) => {
+    // Determine image source with multiple fallback mechanisms
+    let imageSource;
+    try {
+      // First, try remote URI if available
+      if (item.imageUri) {
+        imageSource = { uri: item.imageUri };
+      } 
+      // Then try local asset
+      else {
+        imageSource = getFallbackImage(item.cuisine);
+      }
+    } catch (error) {
+      // Fallback to default image if everything else fails
+      console.error('Image loading error:', error);
+      imageSource = fallbackImages.default;
+    }
+
+    return (
+      <View style={styles.restcard}>
+        <Image 
+          source={imageSource}
+          style={styles.backgroundImage}
+          resizeMode="cover"
+          onError={(e) => {
+            console.error('Image load error:', e.nativeEvent.error);
+            // Force default image on error
+            imageSource = fallbackImages.default;
+          }}
+        />
+        <View style={styles.CardOverlay}>
           <Text 
-            style={styles.textLocation} 
-            numberOfLines={1}
+            style={styles.textName} 
+            numberOfLines={2} 
+            adjustsFontSizeToFit
           >
-            {item.location}
+            {item.name}
           </Text>
-          <Text 
-            style={styles.textCuisine} 
-            numberOfLines={1}
-          >
-            {item.cuisine}
-          </Text>
+          <View style={styles.detailsContainer}>
+            <Text 
+              style={styles.textLocation} 
+              numberOfLines={1}
+            >
+              {item.location}
+            </Text>
+            <Text 
+              style={styles.textCuisine} 
+              numberOfLines={1}
+            >
+              {item.cuisine}
+            </Text>
+          </View>
         </View>
       </View>
-    </View>
-  );
+    );
+  };
 
   // Handle loading state
   if (isLoading) {
@@ -125,7 +180,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'black',
     alignSelf: 'center',
     
-    // Shadow for iOS
     shadowColor: '#000',
     shadowOffset: { 
       width: 0, 
@@ -134,8 +188,17 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     
-    // Elevation for Android
     elevation: 5,
+    overflow: 'hidden',
+  },
+  backgroundImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    bottom: 0,
+    right: 0,
+    width: '100%',
+    height: '100%',
   },
   CardOverlay: {
     width: '100%',
@@ -151,6 +214,9 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: NAME_FONT_SIZE,
     marginBottom: 10,
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: {width: -1, height: 1},
+    textShadowRadius: 10
   },
   detailsContainer: {
     flexDirection: 'row',
@@ -162,10 +228,16 @@ const styles = StyleSheet.create({
     fontSize: DETAIL_FONT_SIZE,
     flex: 1,
     marginRight: 10,
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: {width: -1, height: 1},
+    textShadowRadius: 10
   },
   textCuisine: {
     color: 'white',
     fontSize: DETAIL_FONT_SIZE,
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: {width: -1, height: 1},
+    textShadowRadius: 10
   },
   errorText: {
     color: 'red',
