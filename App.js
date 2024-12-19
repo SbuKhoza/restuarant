@@ -18,6 +18,7 @@ import HomeScreen from './screens/HomeScreen';
 import ReservationScreen from './screens/ReservationScreen';
 import RestaurantScreen from './screens/RestaurantScreen';
 import ProfileScreen from './screens/ProfileScreen';
+import Reserve from './screens/Reserve';
 import { Provider } from 'react-redux';
 import store from './redux/store';
 
@@ -125,8 +126,10 @@ const App = () => {
         screenOptions={{ headerShown: false }}
       >
         <Stack.Screen name="Splash" component={SplashScreen} />
-        <Stack.Screen name="MainApp" component={MainApp} />
         <Stack.Screen name="AuthenticationScreen" component={AuthenticationScreen} />
+        <Stack.Screen name="MainApp" component={MainApp} />
+        <Stack.Screen name="Reserve" component={Reserve} />
+        
       </Stack.Navigator>
     </NavigationContainer>
     </Provider>
@@ -139,6 +142,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+    height: '100%', // Ensure full height
+    width: '100%',
+    zIndex: '100',
   },
   menuButton: {
     marginRight: 15,

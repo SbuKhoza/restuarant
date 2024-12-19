@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   Image, 
   StyleSheet, 
@@ -8,10 +8,14 @@ import {
   ActivityIndicator,
   Dimensions,
   Platform,
-  StatusBar 
+  StatusBar,
+  Modal,
+  TouchableOpacity,
+  ScrollView
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchRestaurants } from '../redux/slices/restuarantSlice';
+import { useNavigation } from '@react-navigation/native';
 
 // Get screen dimensions
 const { width, height } = Dimensions.get('window');
@@ -32,105 +36,86 @@ const fallbackImages = {
 
 export default function RestaurantCard() {
   const dispatch = useDispatch();
+  const navigation = useNavigation();
+  const [selectedRestaurant, setSelectedRestaurant] = useState(null);
+  const [showModal, setShowModal] = useState(false);
   
-  // Get restaurants, loading state, and error from Redux store
   const { restaurants, isLoading, error } = useSelector((state) => state.restaurants);
 
-  // Fetch restaurants when component mounts
   useEffect(() => {
     dispatch(fetchRestaurants());
   }, [dispatch]);
 
-  // Get fallback image with robust handling
   const getFallbackImage = (cuisine) => {
     if (!cuisine) return fallbackImages.default;
-    
-    // Convert to lowercase and try to match
     const lowerCuisine = cuisine.toLowerCase();
-    
-    // Check for exact or partial match
     for (let key in fallbackImages) {
       if (lowerCuisine.includes(key)) {
         return fallbackImages[key];
       }
     }
-    
-    // Return default if no match
     return fallbackImages.default;
   };
 
-  // Render individual restaurant card
+  const handleCardPress = (restaurant) => {
+    setSelectedRestaurant(restaurant);
+    setShowModal(true);
+  };
+
+  const handleReservePress = () => {
+    setShowModal(false);
+    navigation.navigate('Reserve', { restaurant: selectedRestaurant });
+  };
+
   const renderRestaurantCard = ({ item }) => {
-    // Determine image source with multiple fallback mechanisms
     let imageSource;
     try {
-      // First, try remote URI if available
-      if (item.imageUri) {
-        imageSource = { uri: item.imageUri };
-      } 
-      // Then try local asset
-      else {
-        imageSource = getFallbackImage(item.cuisine);
-      }
+      imageSource = item.imageUri ? { uri: item.imageUri } : getFallbackImage(item.cuisine);
     } catch (error) {
-      // Fallback to default image if everything else fails
       console.error('Image loading error:', error);
       imageSource = fallbackImages.default;
     }
 
     return (
-      <View style={styles.restcard}>
+      <TouchableOpacity 
+        style={styles.restcard}
+        onPress={() => handleCardPress(item)}
+      >
         <Image 
           source={imageSource}
           style={styles.backgroundImage}
           resizeMode="cover"
           onError={(e) => {
             console.error('Image load error:', e.nativeEvent.error);
-            // Force default image on error
             imageSource = fallbackImages.default;
           }}
         />
         <View style={styles.CardOverlay}>
-          <Text 
-            style={styles.textName} 
-            numberOfLines={2} 
-            adjustsFontSizeToFit
-          >
+          <Text style={styles.textName} numberOfLines={2} adjustsFontSizeToFit>
             {item.name}
           </Text>
           <View style={styles.detailsContainer}>
-            <Text 
-              style={styles.textLocation} 
-              numberOfLines={1}
-            >
+            <Text style={styles.textLocation} numberOfLines={1}>
               {item.location}
             </Text>
-            <Text 
-              style={styles.textCuisine} 
-              numberOfLines={1}
-            >
+            <Text style={styles.textCuisine} numberOfLines={1}>
               {item.cuisine}
             </Text>
           </View>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 
-  // Handle loading state
   if (isLoading) {
     return (
       <View style={styles.centeredContainer}>
-        <ActivityIndicator 
-          size="large" 
-          color="#0000ff" 
-        />
+        <ActivityIndicator size="large" color="#0000ff" />
         <Text>Loading Restaurants...</Text>
       </View>
     );
   }
 
-  // Handle error state
   if (error) {
     return (
       <View style={styles.centeredContainer}>
@@ -140,21 +125,66 @@ export default function RestaurantCard() {
   }
 
   return (
-    <FlatList
-      data={restaurants}
-      renderItem={renderRestaurantCard}
-      keyExtractor={(item) => item._id}
-      contentContainerStyle={styles.container}
-      showsVerticalScrollIndicator={false}
-      removeClippedSubviews={true}
-      maxToRenderPerBatch={10}
-      initialNumToRender={5}
-      getItemLayout={(data, index) => ({
-        length: CARD_HEIGHT,
-        offset: CARD_HEIGHT * index,
-        index,
-      })}
-    />
+    <>
+      <FlatList
+        data={restaurants}
+        renderItem={renderRestaurantCard}
+        keyExtractor={(item) => item._id}
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+        removeClippedSubviews={true}
+        maxToRenderPerBatch={10}
+        initialNumToRender={5}
+        getItemLayout={(data, index) => ({
+          length: CARD_HEIGHT,
+          offset: CARD_HEIGHT * index,
+          index,
+        })}
+      />
+
+      <Modal
+        visible={showModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowModal(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            {selectedRestaurant && (
+              <ScrollView>
+                <Image 
+                  source={
+                    selectedRestaurant.imageUri 
+                      ? { uri: selectedRestaurant.imageUri }
+                      : getFallbackImage(selectedRestaurant.cuisine)
+                  }
+                  style={styles.modalImage}
+                  resizeMode="cover"
+                />
+                <View style={styles.modalDetails}>
+                  <Text style={styles.modalName}>{selectedRestaurant.name}</Text>
+                  <Text style={styles.modalText}>Location: {selectedRestaurant.location}</Text>
+                  <Text style={styles.modalText}>Cuisine: {selectedRestaurant.cuisine}</Text>
+                  {/* Add more restaurant details here */}
+                </View>
+                <TouchableOpacity 
+                  style={styles.reserveButton}
+                  onPress={handleReservePress}
+                >
+                  <Text style={styles.reserveButtonText}>Reserve Now</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.closeButton}
+                  onPress={() => setShowModal(false)}
+                >
+                  <Text style={styles.closeButtonText}>Close</Text>
+                </TouchableOpacity>
+              </ScrollView>
+            )}
+          </View>
+        </View>
+      </Modal>
+    </>
   );
 }
 
@@ -179,15 +209,10 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     backgroundColor: 'black',
     alignSelf: 'center',
-    
     shadowColor: '#000',
-    shadowOffset: { 
-      width: 0, 
-      height: 2 
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
-    
     elevation: 5,
     overflow: 'hidden',
   },
@@ -208,6 +233,58 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     padding: 15,
     justifyContent: 'space-between',
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    width: width * 0.9,
+    maxHeight: height * 0.8,
+    borderRadius: 15,
+    overflow: 'hidden',
+  },
+  modalImage: {
+    width: '100%',
+    height: height * 0.3,
+  },
+  modalDetails: {
+    padding: 20,
+  },
+  modalName: {
+    fontSize: NAME_FONT_SIZE,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  modalText: {
+    fontSize: DETAIL_FONT_SIZE,
+    marginBottom: 5,
+  },
+  reserveButton: {
+    backgroundColor: 'tomato',
+    padding: 15,
+    margin: 20,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  reserveButtonText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  closeButton: {
+    padding: 15,
+    marginHorizontal: 20,
+    marginBottom: 20,
+    borderRadius: 8,
+    alignItems: 'center',
+    backgroundColor: '#ddd',
+  },
+  closeButtonText: {
+    fontSize: 16,
   },
   textName: {
     color: 'white',
