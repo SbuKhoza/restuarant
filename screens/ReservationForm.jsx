@@ -9,10 +9,11 @@ const ReservationForm = ({ route }) => {
       <Text style={styles.title}>Make a Reservation</Text>
       <Text style={styles.restaurantName}>{restaurant.name}</Text>
       <ReservationFom/>
+
     </View>
   );
 };
-
+//
 const styles = StyleSheet.create({
   container: {
     flex: 1,
