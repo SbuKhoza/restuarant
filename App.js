@@ -10,6 +10,7 @@ import {
   TouchableOpacity
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+// import { StripeProvider } from '@stripe/stripe-react-native';
 
 // Import screens 
 import SplashScreen from './screens/SplashScreen';
@@ -19,8 +20,10 @@ import ReservationScreen from './screens/ReservationScreen';
 import RestaurantScreen from './screens/RestaurantScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import Reserve from './screens/Reserve';
+import PaymentScreen from './screens/PaymentScreen';
 import { Provider } from 'react-redux';
 import store from './redux/store';
+
 
 // Hamburger Menu Component
 const HamburgerMenu = ({ isOpen, toggleMenu, navigation }) => {
@@ -120,6 +123,7 @@ const App = () => {
 
   return (
     <Provider store={store}>
+      
     <NavigationContainer>
       <Stack.Navigator 
         initialRouteName="Splash"
@@ -129,9 +133,11 @@ const App = () => {
         <Stack.Screen name="AuthenticationScreen" component={AuthenticationScreen} />
         <Stack.Screen name="MainApp" component={MainApp} />
         <Stack.Screen name="Reserve" component={Reserve} />
+        <Stack.Screen name="PaymentScreen" component={PaymentScreen} />
         
       </Stack.Navigator>
     </NavigationContainer>
+    
     </Provider>
   );
 };

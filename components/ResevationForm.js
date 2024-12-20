@@ -22,7 +22,7 @@ import {
   resetReservation
 } from '../redux/slices/resevationSlice';
 
-const ReservationForm = () => {
+const ReservationForm = ({ navigation }) => {
   const dispatch = useDispatch();
   const {
     name,
@@ -38,6 +38,7 @@ const ReservationForm = () => {
 
   const [showDatePicker, setShowDatePicker] = React.useState(false);
   const [showTimePicker, setShowTimePicker] = React.useState(false);
+  const STANDARD_RESERVATION_AMOUNT = 200;
 
   const handleDateChange = (event, selectedDate) => {
     const currentDate = selectedDate || new Date(date);
@@ -51,7 +52,7 @@ const ReservationForm = () => {
     dispatch(updateTime(currentTime.toLocaleTimeString()));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     // Basic validation
     if (!name || !email || !phoneNumber || !guests) {
       Alert.alert('Error', 'Please fill in all fields');
@@ -68,17 +69,19 @@ const ReservationForm = () => {
       time
     };
 
-    // Dispatch submission
-    dispatch(submitReservation(reservationData));
-  };
-
-  // Handle successful submission
-  React.useEffect(() => {
-    if (reservationSuccess) {
-      Alert.alert('Success', 'Your reservation has been submitted!');
-      dispatch(resetReservation());
+    try {
+      // Dispatch submission
+      await dispatch(submitReservation(reservationData)).unwrap();
+      
+      // Navigate to payment screen with the standard amount
+      navigation.navigate('PaymentScreen', {
+        total: STANDARD_RESERVATION_AMOUNT,
+        reservationData // Pass the reservation data in case needed in payment screen
+      });
+    } catch (err) {
+      Alert.alert('Error', 'Failed to create reservation. Please try again.');
     }
-  }, [reservationSuccess]);
+  };
 
   // Handle submission error
   React.useEffect(() => {
@@ -166,14 +169,13 @@ const ReservationForm = () => {
         disabled={isSubmitting}
       >
         <Text style={styles.submitButtonText}>
-          {isSubmitting ? 'Submitting...' : 'Submit Reservation'}
+          {isSubmitting ? 'Submitting...' : 'Proceed to Payment (R200)'}
         </Text>
       </TouchableOpacity>
     </ScrollView>
   );
 };
 
-// Styles remain the same as in the original component
 const styles = StyleSheet.create({
   container: {
     flex: 1,

@@ -28,10 +28,10 @@ const DETAIL_FONT_SIZE = width * 0.04;
 
 // Fallback image handling
 const fallbackImages = {
-  italian: require('../assets/images/kota.jpg'),
-  mexican: require('../assets/images/cake.jpg'),
-  chinese: require('../assets/images/african.jpeg'),
-  default: require('../assets/images/african.jpeg'),
+  italian: require('../assets/kota.jpg'),
+  mexican: require('../assets/cake.jpg'),
+  chinese: require('../assets/african.jpeg'),
+  default: require('../assets/african.jpeg'),
 };
 
 export default function RestaurantCard() {

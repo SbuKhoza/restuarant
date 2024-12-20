@@ -17,7 +17,7 @@ const SplashScreen = () => {
   return (
     <View style={styles.container}>
       <Image 
-        source={require('../assets/images/In Your Mouth.gif')} 
+        source={require('../assets/InYourMouth.gif')} 
         style={styles.logo}
         resizeMode="contain"
       />

@@ -10,7 +10,7 @@ import RestaurantCard from '../components/RestaurantCard'
                 <View style={styles.quickMenu}>
                     <View style={styles.menu1}>
                         <Image
-                            source={require('../assets/images/kota.jpg')}
+                            source={require('../assets/kota.jpg')}
                             style={styles.menuImage}
                             resizeMode="contain"
                         />
@@ -18,7 +18,7 @@ import RestaurantCard from '../components/RestaurantCard'
 
                     <View style={styles.menu1}>
                         <Image
-                            source={require('../assets/images/cake.jpg')}
+                            source={require('../assets/cake.jpg')}
                             style={styles.menuImage}
                             resizeMode="contain"
                         />
@@ -26,7 +26,7 @@ import RestaurantCard from '../components/RestaurantCard'
 
                     <View style={styles.menu1}>
                         <Image
-                            source={require('../assets/images/chevanon.jpg')}
+                            source={require('../assets/chevanon.jpg')}
                             style={styles.menuImage}
                             resizeMode="contain"
                         />
@@ -34,7 +34,7 @@ import RestaurantCard from '../components/RestaurantCard'
 
                     <View style={styles.menu1}>
                         <Image
-                            source={require('../assets/images/drink.jpg')}
+                            source={require('../assets/drink.jpg')}
                             style={styles.menuImage}
                             resizeMode="contain"
                         />
