@@ -8,7 +8,7 @@ const ReservationForm = ({ route }) => {
     <View style={styles.container}>
       <Text style={styles.title}>Make a Reservation</Text>
       <Text style={styles.restaurantName}>{restaurant.name}</Text>
-      <ReservationFo
+      <ReservationFom/>
     </View>
   );
 };

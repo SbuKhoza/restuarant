@@ -1,84 +1,86 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
+import { paymentApi } from '../../api/Api';
 
-// Async thunk for creating payment intent
+// Async thunks for payment operations
 export const createPaymentIntent = createAsyncThunk(
   'payment/createPaymentIntent',
-  async (reservationData, { rejectWithValue }) => {
+  async (paymentData, { rejectWithValue }) => {
     try {
-      const response = await axios.post('/api/reservations/create-payment', {
-        restaurantId: reservationData.restaurantId,
-        date: reservationData.date,
-        time: reservationData.time,
-        guests: reservationData.guests,
-        specialRequests: reservationData.specialRequests,
-        customerName: reservationData.name,
-        customerEmail: reservationData.email,
-        customerPhoneNumber: reservationData.phone
-      });
+      const response = await paymentApi.createPaymentIntent(paymentData);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to create payment intent');
+      return rejectWithValue(error.response?.data?.message || 'Payment initialization failed');
     }
   }
 );
 
-// Async thunk for confirming payment
-export const confirmPaymentIntent = createAsyncThunk(
-  'payment/confirmPaymentIntent',
-  async ({ reservationId, paymentIntentId }, { rejectWithValue }) => {
+export const verifyPayment = createAsyncThunk(
+  'payment/verifyPayment',
+  async (reference, { rejectWithValue }) => {
     try {
-      const response = await axios.post('/api/reservations/confirm-payment', {
-        reservationId,
-        paymentIntentId
-      });
+      const response = await paymentApi.verifyPayment(reference);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to confirm payment');
+      return rejectWithValue(error.response?.data?.message || 'Payment verification failed');
+    }
+  }
+);
+
+export const confirmPaymentIntent = createAsyncThunk(
+  'payment/confirmPaymentIntent',
+  async ({ reservationId, paymentReference }, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await paymentApi.confirmPayment({
+        reservationId,
+        paymentReference
+      });
+      
+      // Update reservations list with confirmed status
+      dispatch(updateReservationStatus({
+        id: reservationId,
+        status: 'Confirmed',
+        paymentReference
+      }));
+      
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Payment confirmation failed');
     }
   }
 );
 
 const initialState = {
   isProcessing: false,
-  isSuccess: false,
+  paymentStatus: null, // 'pending' | 'processing' | 'succeeded' | 'failed'
   error: null,
-  clientSecret: null,
-  reservationId: null,
-  paymentIntentId: null,
-  paymentStatus: 'idle', // 'idle' | 'processing' | 'succeeded' | 'failed'
-  lastPaymentError: null
+  paymentReference: null,
+  lastPaymentError: null,
+  isSuccess: false
 };
 
 const paymentSlice = createSlice({
   name: 'payment',
   initialState,
   reducers: {
-    resetPaymentState: (state) => {
-      return initialState;
+    setReference: (state, action) => {
+      state.paymentReference = action.payload;
     },
-    setPaymentError: (state, action) => {
-      state.error = action.payload;
-      state.isProcessing = false;
-      state.paymentStatus = 'failed';
-    },
-    clearPaymentError: (state) => {
-      state.error = null;
-      state.lastPaymentError = null;
+    resetPayment: () => initialState,
+    updateReservationStatus: (state, action) => {
+      // This will be handled by the reservations reducer
+      // We dispatch this action to update the reservation status after payment
     }
   },
   extraReducers: (builder) => {
-    // Create Payment Intent
     builder
+      // Create Payment Intent
       .addCase(createPaymentIntent.pending, (state) => {
         state.isProcessing = true;
         state.error = null;
-        state.paymentStatus = 'processing';
+        state.paymentStatus = 'pending';
       })
-      .addCase(createPaymentIntent.fulfilled, (state, action) => {
+      .addCase(createPaymentIntent.fulfilled, (state) => {
         state.isProcessing = false;
-        state.clientSecret = action.payload.clientSecret;
-        state.reservationId = action.payload.reservationId;
         state.paymentStatus = 'processing';
       })
       .addCase(createPaymentIntent.rejected, (state, action) => {
@@ -87,17 +89,29 @@ const paymentSlice = createSlice({
         state.paymentStatus = 'failed';
         state.lastPaymentError = action.payload;
       })
-
-    // Confirm Payment Intent
-      .addCase(confirmPaymentIntent.pending, (state) => {
+      
+      // Verify Payment
+      .addCase(verifyPayment.pending, (state) => {
         state.isProcessing = true;
-        state.error = null;
       })
-      .addCase(confirmPaymentIntent.fulfilled, (state, action) => {
+      .addCase(verifyPayment.fulfilled, (state) => {
         state.isProcessing = false;
         state.isSuccess = true;
-        state.paymentIntentId = action.payload.paymentIntentId;
+      })
+      .addCase(verifyPayment.rejected, (state, action) => {
+        state.isProcessing = false;
+        state.error = action.payload;
+        state.lastPaymentError = action.payload;
+      })
+      
+      // Confirm Payment
+      .addCase(confirmPaymentIntent.pending, (state) => {
+        state.isProcessing = true;
+      })
+      .addCase(confirmPaymentIntent.fulfilled, (state) => {
+        state.isProcessing = false;
         state.paymentStatus = 'succeeded';
+        state.isSuccess = true;
       })
       .addCase(confirmPaymentIntent.rejected, (state, action) => {
         state.isProcessing = false;
@@ -108,15 +122,5 @@ const paymentSlice = createSlice({
   }
 });
 
-export const { resetPaymentState, setPaymentError, clearPaymentError } = paymentSlice.actions;
-
-// Selectors
-export const selectPaymentState = (state) => ({
-  isProcessing: state.payment.isProcessing,
-  isSuccess: state.payment.isSuccess,
-  error: state.payment.error,
-  paymentStatus: state.payment.paymentStatus,
-  lastPaymentError: state.payment.lastPaymentError
-});
-
+export const { setReference, resetPayment, updateReservationStatus } = paymentSlice.actions;
 export default paymentSlice.reducer;

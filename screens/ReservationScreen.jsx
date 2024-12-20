@@ -20,14 +20,7 @@ const ReservationsScreen = () => {
       time: '7:00 PM',
       status: 'Confirmed'
     },
-    {
-      id: '2',
-      name: 'Sbuda Malloya',
-      guests: '4',
-      date: '2024-04-20',
-      time: '6:30 PM',
-      status: 'Pending'
-    }
+    
   ]);
 
   const handleCancelReservation = (reservationId) => {
