@@ -20,7 +20,7 @@ import {
   updateTime,
   submitReservation,
   resetReservation
-} from '../redux/slices/reservationSlice';
+} from '.././';
 
 
 const ReservationForm = ({ navigation }) => {

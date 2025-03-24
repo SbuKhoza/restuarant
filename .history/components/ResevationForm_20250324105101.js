@@ -20,8 +20,8 @@ import {
   updateTime,
   submitReservation,
   resetReservation
-} from '../redux/slices/reservationSlice';
-
+} from '../redux/slices/resevationSlice';
+import { ... } from '../redux/slices/resevationSlice';
 
 const ReservationForm = ({ navigation }) => {
   const dispatch = useDispatch();
