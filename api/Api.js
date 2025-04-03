@@ -91,19 +91,10 @@ export const authApi = {
       console.error('Signup API Error:', error.message);
       throw error;
     }
-  },
-  getUserProfile: async () => {
-    try {
-      const response = await Api.get('/user/profile');
-      return response.data;
-    } catch (error) {
-      console.error('Get User Profile Error:', error.message);
-      throw error;
-    }
   }
 };
 
-// Rest of the API methods remain the same
+// User API methods
 export const userApi = {
   getUserProfile: async () => {
     try {
@@ -149,10 +140,109 @@ export const restaurantApi = {
 export const reservationApi = {
   createReservation: async (reservationData) => {
     try {
-      const response = await Api.post('/reservations', reservationData);
+      console.log('API createReservation called with:', reservationData);
+      
+      // Check for required fields
+      if (!reservationData.restaurantId) {
+        throw new Error('Restaurant ID is required');
+      }
+      
+      // Format the data according to what the backend expects
+      const formattedData = {
+        restaurantId: reservationData.restaurantId,
+        date: reservationData.date,
+        time: reservationData.time,
+        guests: parseInt(reservationData.guests),
+        customerName: reservationData.name,
+        customerEmail: reservationData.email,
+        customerPhoneNumber: reservationData.phoneNumber,
+        specialRequests: reservationData.specialRequests || ''
+      };
+      
+      console.log('Sending formatted data to API:', formattedData);
+      
+      const response = await Api.post('/reservations', formattedData);
+      console.log('Reservation API response:', response.data);
       return response.data;
     } catch (error) {
-      console.error('Create Reservation Error:', error.message);
+      console.error('Create Reservation API Error:', error);
+      // Enhanced error handling
+      if (error.response?.data?.message) {
+        throw new Error(error.response.data.message);
+      } else if (error.message) {
+        throw new Error(error.message);
+      } else {
+        throw new Error('Failed to create reservation');
+      }
+    }
+  },
+  
+  createReservationPayment: async (reservationData) => {
+    try {
+      console.log('API createReservationPayment called with:', reservationData);
+      
+      // Format the data for payment initialization
+      const formattedData = {
+        restaurantId: reservationData.restaurantId,
+        date: reservationData.date,
+        time: reservationData.time,
+        guests: parseInt(reservationData.guests),
+        customerName: reservationData.name || reservationData.customerName,
+        customerEmail: reservationData.email || reservationData.customerEmail,
+        customerPhoneNumber: reservationData.phoneNumber || reservationData.customerPhoneNumber,
+        specialRequests: reservationData.specialRequests || ''
+      };
+      
+      console.log('Sending payment request with data:', formattedData);
+      
+      const response = await Api.post('/reservations/payment', formattedData);
+      console.log('Payment API response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Create Reservation Payment Error:', error);
+      throw new Error(error.response?.data?.message || error.message || 'Payment initialization failed');
+    }
+  },
+  
+  getAvailability: async (restaurantId, date) => {
+    try {
+      const response = await Api.get(`/reservations/availability/${restaurantId}/${date}`);
+      return response.data;
+    } catch (error) {
+      console.error('Get Availability Error:', error.message);
+      throw error;
+    }
+  },
+  
+  getUserReservations: async () => {
+    try {
+      const response = await Api.get('/reservations/user');
+      return response.data;
+    } catch (error) {
+      console.error('Get User Reservations Error:', error.message);
+      throw error;
+    }
+  },
+  
+  cancelReservation: async (reservationId) => {
+    try {
+      const response = await Api.put(`/reservations/${reservationId}/cancel`);
+      return response.data;
+    } catch (error) {
+      console.error('Cancel Reservation Error:', error.message);
+      throw error;
+    }
+  },
+  
+  confirmPayment: async (reservationId, paymentReference) => {
+    try {
+      const response = await Api.post('/reservations/confirm-payment', {
+        reservationId,
+        paymentReference
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Confirm Payment Error:', error.message);
       throw error;
     }
   }

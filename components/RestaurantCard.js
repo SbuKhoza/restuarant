@@ -14,7 +14,7 @@ import {
   ScrollView
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchRestaurants } from '../redux/slices/restuarantSlice';
+import { fetchRestaurants, selectRestaurant } from '../redux/slices/restuarantSlice';
 import { useNavigation } from '@react-navigation/native';
 
 // Get screen dimensions
@@ -64,7 +64,15 @@ export default function RestaurantCard() {
 
   const handleReservePress = () => {
     setShowModal(false);
-    navigation.navigate('Reserve', { restaurant: selectedRestaurant });
+    
+    // Store selected restaurant in Redux
+    dispatch(selectRestaurant(selectedRestaurant));
+    
+    // Navigate to reservation form with all restaurant details
+    navigation.navigate('Reserve', { 
+      restaurant: selectedRestaurant,
+      restaurantId: selectedRestaurant._id 
+    });
   };
 
   const renderRestaurantCard = ({ item }) => {

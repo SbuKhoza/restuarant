@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
     color: '#495057',
   },
   authButton: {
-    backgroundColor: '#007bff', // Vibrant blue
+    backgroundColor: 'tomato',
     borderRadius: 10,
     paddingVertical: 15,
     alignItems: 'center',
