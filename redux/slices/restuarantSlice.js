@@ -27,9 +27,10 @@ export const fetchRestaurants = createAsyncThunk(
   }
 );
 
-// Initial state with an empty restaurants array
+// Initial state with an empty restaurants array and selectedRestaurant
 const initialState = {
   restaurants: [],
+  selectedRestaurant: null, // Add selected restaurant to state
   isLoading: false,
   error: null
 };
@@ -46,8 +47,19 @@ const restaurantSlice = createSlice({
     
     removeRestaurant: (state, action) => {
       state.restaurants = state.restaurants.filter(
-        restaurant => restaurant.id !== action.payload
+        restaurant => restaurant._id !== action.payload
       );
+    },
+
+    // Add a reducer to select a restaurant
+    selectRestaurant: (state, action) => {
+      state.selectedRestaurant = action.payload;
+      console.log('Restaurant selected in Redux:', action.payload);
+    },
+
+    // Add a reducer to clear the selected restaurant
+    clearSelectedRestaurant: (state) => {
+      state.selectedRestaurant = null;
     },
 
     // Clear error state
@@ -78,6 +90,8 @@ const restaurantSlice = createSlice({
 export const { 
   addRestaurant, 
   removeRestaurant,
+  selectRestaurant,
+  clearSelectedRestaurant,
   clearError
 } = restaurantSlice.actions;
 

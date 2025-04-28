@@ -1,15 +1,23 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { reservationApi } from '../../api/Api'; 
+import { reservationApi } from '../../api/Api';
 
-// Async thunk for reservation submission
+// Async thunk for creating a reservation
 export const submitReservation = createAsyncThunk(
   'reservation/submitReservation',
   async (reservationData, { rejectWithValue }) => {
     try {
+      console.log('Submitting reservation with data:', reservationData);
+      
+      // Check for required fields
+      if (!reservationData.restaurantId) {
+        throw new Error('Restaurant ID is required');
+      }
+      
       const response = await reservationApi.createReservation(reservationData);
       return response;
     } catch (error) {
-      return rejectWithValue(error.response.data.message || 'Reservation failed');
+      console.error('Error in submitReservation:', error);
+      return rejectWithValue(error.message || 'Failed to create reservation');
     }
   }
 );
@@ -23,7 +31,8 @@ const initialState = {
   time: new Date().toLocaleTimeString(),
   isSubmitting: false,
   error: null,
-  reservationSuccess: false
+  reservationSuccess: false,
+  reservationId: null
 };
 
 const reservationSlice = createSlice({
@@ -57,33 +66,29 @@ const reservationSlice = createSlice({
         state.error = null;
         state.reservationSuccess = false;
       })
-      .addCase(submitReservation.fulfilled, (state) => {
+      .addCase(submitReservation.fulfilled, (state, action) => {
         state.isSubmitting = false;
         state.reservationSuccess = true;
-        // Reset form after successful submission
-        state.name = '';
-        state.email = '';
-        state.phoneNumber = '';
-        state.guests = '';
-        state.date = new Date().toDateString();
-        state.time = new Date().toLocaleTimeString();
+        // Extract the reservationId from the response
+        state.reservationId = action.payload.reservation._id || action.payload.reservation.id;
+        console.log('Reservation created with ID:', state.reservationId);
       })
       .addCase(submitReservation.rejected, (state, action) => {
         state.isSubmitting = false;
-        state.error = action.payload;
-        state.reservationSuccess = false;
+        state.error = action.payload || 'An error occurred';
+        console.error('Reservation submission failed:', state.error);
       });
   }
 });
 
-export const { 
-  updateName, 
-  updateEmail, 
-  updatePhoneNumber, 
-  updateGuests, 
-  updateDate, 
-  updateTime, 
-  resetReservation 
+export const {
+  updateName,
+  updateEmail,
+  updatePhoneNumber,
+  updateGuests,
+  updateDate,
+  updateTime,
+  resetReservation
 } = reservationSlice.actions;
 
 export default reservationSlice.reducer;

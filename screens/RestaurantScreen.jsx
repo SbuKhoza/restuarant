@@ -1,10 +1,12 @@
 import React, { useEffect } from 'react';
-import { StyleSheet, Text, View, FlatList, ActivityIndicator } from 'react-native';
+import { StyleSheet, Text, View, FlatList, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchRestaurants } from '../redux/slices/restuarantSlice';
+import { fetchRestaurants, selectRestaurant } from '../redux/slices/restuarantSlice';
+import { useNavigation } from '@react-navigation/native';
 
 const RestaurantScreen = () => {
   const dispatch = useDispatch();
+  const navigation = useNavigation();
   
   // Get restaurants and loading state from Redux store
   const { restaurants, isLoading, error } = useSelector((state) => state.restaurants);
@@ -14,15 +16,37 @@ const RestaurantScreen = () => {
     dispatch(fetchRestaurants());
   }, [dispatch]);
 
+  // Handle restaurant selection and navigation
+  const handleSelectRestaurant = (restaurant) => {
+    // Store the selected restaurant in Redux
+    dispatch(selectRestaurant(restaurant));
+    console.log('Selected restaurant:', restaurant);
+    
+    // Navigate to reservation form with all restaurant details
+    navigation.navigate('Reserve', { 
+      restaurant: restaurant,
+      restaurantId: restaurant._id // Explicitly pass restaurantId for clarity
+    });
+  };
+
   // Render individual restaurant item
   const renderRestaurantItem = ({ item }) => (
-    <View style={styles.restaurantItem}>
+    <TouchableOpacity 
+      style={styles.restaurantItem}
+      onPress={() => handleSelectRestaurant(item)}
+    >
       <View style={styles.restaurantDetails}>
         <Text style={styles.restaurantName}>{item.name}</Text>
         <Text style={styles.restaurantLocation}>{item.location}</Text>
         <Text style={styles.restaurantCuisine}>{item.cuisine}</Text>
+        <TouchableOpacity 
+          style={styles.reserveButton}
+          onPress={() => handleSelectRestaurant(item)}
+        >
+          <Text style={styles.reserveButtonText}>Reserve Now</Text>
+        </TouchableOpacity>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   // Handle loading state
@@ -98,6 +122,18 @@ const styles = StyleSheet.create({
   },
   restaurantCuisine: {
     color: '#999',
+    marginBottom: 10,
+  },
+  reserveButton: {
+    backgroundColor: 'tomato',
+    padding: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  reserveButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
   },
   emptyText: {
     textAlign: 'center',

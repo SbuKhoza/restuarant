@@ -1,239 +1,47 @@
-// import React, { useState } from 'react';
-// import {
-//   View,
-//   Text,
-//   StyleSheet,
-//   Alert,
-//   ActivityIndicator,
-//   SafeAreaView,
-//   TouchableOpacity,
-// } from 'react-native';
-// import {
-//   CardField,
-//   useStripe,
-//   useConfirmPayment,
-//   StripeProvider,
-// } from '@stripe/stripe-react-native';
-// import { useDispatch, useSelector } from 'react-redux';
-// import { createPaymentIntent, confirmPaymentIntent, selectPaymentState } from '../redux/slices/paymentSlice';
-
-// const STRIPE_PUBLISHABLE_KEY = 'pk_test_51QUonaLfnYH5WXDpSsRgB25dK0TSn5kv0Sd9X5aJVbnTugIB9gutHHJSDuVWVScJYrdMZpFlN5LsaFQMsQzOYkCF00jgXV0Wys';
-
-// const PaymentScreenContent = ({ amount, onSuccess, onError, reservationData }) => {
-//   const dispatch = useDispatch();
-//   const { confirmPayment } = useConfirmPayment();
-//   const [cardComplete, setCardComplete] = useState(false);
-//   const [processing, setProcessing] = useState(false);
-//   const { isProcessing, error, paymentStatus } = useSelector(selectPaymentState);
-
-//   const handlePayment = async () => {
-//     if (!cardComplete) {
-//       Alert.alert('Error', 'Please complete card details');
-//       return;
-//     }
-
-//     try {
-//       setProcessing(true);
-
-//       // Create payment intent through Redux
-//       const paymentIntentResult = await dispatch(createPaymentIntent(reservationData)).unwrap();
-      
-//       // Confirm payment with Stripe
-//       const { error: stripeError, paymentIntent } = await confirmPayment(
-//         paymentIntentResult.clientSecret,
-//         { paymentMethodType: 'Card' }
-//       );
-
-//       if (stripeError) {
-//         Alert.alert('Payment Error', stripeError.message);
-//         onError?.(stripeError);
-//         return;
-//       }
-
-//       // Confirm payment on backend
-//       if (paymentIntent.status === 'Succeeded') {
-//         await dispatch(confirmPaymentIntent({
-//           reservationId: paymentIntentResult.reservationId,
-//           paymentIntentId: paymentIntent.id
-//         })).unwrap();
-        
-//         onSuccess?.(paymentIntent);
-//         Alert.alert('Success', 'Payment processed successfully');
-//       }
-
-//     } catch (error) {
-//       Alert.alert('Error', error.message);
-//       onError?.(error);
-//     } finally {
-//       setProcessing(false);
-//     }
-//   };
-
-//   return (
-//     <SafeAreaView style={styles.container}>
-//       <View style={styles.card}>
-//         <View style={styles.header}>
-//           <Text style={styles.headerText}>Payment Details</Text>
-//         </View>
-        
-//         <View style={styles.cardFieldContainer}>
-//           <CardField
-//             postalCodeEnabled={true}
-//             placeholder={{
-//               number: '4242 4242 4242 4242',
-//             }}
-//             cardStyle={styles.cardStyle}
-//             style={styles.cardField}
-//             onCardChange={(cardDetails) => {
-//               setCardComplete(cardDetails.complete);
-//             }}
-//           />
-//         </View>
-
-//         <View style={styles.amountContainer}>
-//           <Text style={styles.amountText}>
-//             Amount to pay: {amount.toFixed(2)} ZAR
-//           </Text>
-//         </View>
-
-//         <TouchableOpacity
-//           style={[
-//             styles.payButton,
-//             (processing || !cardComplete) && styles.payButtonDisabled,
-//           ]}
-//           onPress={handlePayment}
-//           disabled={processing || !cardComplete}
-//         >
-//           <Text style={styles.payButtonText}>
-//             {processing ? 'Processing...' : 'Pay Now'}
-//           </Text>
-//         </TouchableOpacity>
-
-//         {processing && (
-//           <View style={styles.loadingContainer}>
-//             <ActivityIndicator size="large" color="#0070f3" />
-//           </View>
-//         )}
-//       </View>
-//     </SafeAreaView>
-//   );
-// };
-
-// // Wrapped component with StripeProvider
-// const PaymentScreen = (props) => {
-//   return (
-//     <StripeProvider publishableKey={pk_test_51QUonaLfnYH5WXDpSsRgB25dK0TSn5kv0Sd9X5aJVbnTugIB9gutHHJSDuVWVScJYrdMZpFlN5LsaFQMsQzOYkCF00jgXV0Wys}>
-//       <PaymentScreenContent {...props} />
-//     </StripeProvider>
-//   );
-// };
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     backgroundColor: '#f5f5f5',
-//   },
-//   card: {
-//     backgroundColor: 'white',
-//     borderRadius: 12,
-//     margin: 16,
-//     shadowColor: '#000',
-//     shadowOffset: {
-//       width: 0,
-//       height: 2,
-//     },
-//     shadowOpacity: 0.1,
-//     shadowRadius: 4,
-//     elevation: 3,
-//   },
-//   header: {
-//     padding: 16,
-//     borderBottomWidth: 1,
-//     borderBottomColor: '#eee',
-//   },
-//   headerText: {
-//     fontSize: 20,
-//     fontWeight: '600',
-//     color: '#333',
-//   },
-//   cardFieldContainer: {
-//     padding: 16,
-//   },
-//   cardField: {
-//     width: '100%',
-//     height: 50,
-//   },
-//   cardStyle: {
-//     backgroundColor: '#FFFFFF',
-//     textColor: '#000000',
-//     borderRadius: 8,
-//     borderWidth: 1,
-//     borderColor: '#E0E0E0',
-//   },
-//   amountContainer: {
-//     padding: 16,
-//     borderTopWidth: 1,
-//     borderTopColor: '#eee',
-//   },
-//   amountText: {
-//     fontSize: 16,
-//     fontWeight: '500',
-//     color: '#333',
-//   },
-//   payButton: {
-//     backgroundColor: '#0070f3',
-//     margin: 16,
-//     padding: 16,
-//     borderRadius: 8,
-//     alignItems: 'center',
-//   },
-//   payButtonDisabled: {
-//     backgroundColor: '#ccc',
-//   },
-//   payButtonText: {
-//     color: 'white',
-//     fontSize: 16,
-//     fontWeight: '600',
-//   },
-//   loadingContainer: {
-//     position: 'absolute',
-//     top: 0,
-//     left: 0,
-//     right: 0,
-//     bottom: 0,
-//     alignItems: 'center',
-//     justifyContent: 'center',
-//     backgroundColor: 'rgba(255, 255, 255, 0.8)',
-//   },
-// });
-
-// export default PaymentScreen;
-
-import React, { useEffect, useState } from 'react';
-import { Paystack } from 'react-native-paystack-webview';
-import { View, StyleSheet, Alert, ActivityIndicator, BackHandler } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { 
+  StyleSheet, 
+  Text, 
+  View, 
+  ActivityIndicator, 
+  TouchableOpacity, 
+  Alert,
+  BackHandler 
+} from 'react-native';
+import { WebView } from 'react-native-webview';
 import { useDispatch, useSelector } from 'react-redux';
-import { verifyPayment, setReference, resetPayment } from '../redux/slices/paymentSlice';
-import { createPaymentIntent, confirmPaymentIntent } from '../redux/slices/paymentSlice';
+import { 
+  verifyPayment, 
+  setReference, 
+  resetPayment,
+  createPaymentIntent, 
+  confirmPaymentIntent 
+} from '../redux/slices/paymentSlice';
+import { resetReservation } from '../redux/slices/reservationSlice';
 
-const PaymentScreen = ({ route, navigation }) => {
+const PaymentScreen = ({ navigation, route }) => {
   const dispatch = useDispatch();
   const [isInitializing, setIsInitializing] = useState(true);
-  const { total = 0, reservationData } = route.params || {};
+  const [paymentUrl, setPaymentUrl] = useState('');
+  const [processing, setProcessing] = useState(false);
+  const [error, setError] = useState(null);
+  
   const { 
     isSuccess, 
-    error, 
     isProcessing,
     paymentStatus,
     lastPaymentError 
   } = useSelector(state => state.payment);
-
+  
+  // Extract reservation data from route params
+  const { reservationData, total = 0 } = route.params || {};
+  
   // Prevent accidental back navigation during payment
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
       'hardwareBackPress',
       () => {
-        if (isProcessing) {
+        if (isProcessing || processing) {
           Alert.alert(
             'Payment in Progress',
             'Please wait while your payment is being processed.',
@@ -246,29 +54,39 @@ const PaymentScreen = ({ route, navigation }) => {
     );
 
     return () => backHandler.remove();
-  }, [isProcessing]);
-
+  }, [isProcessing, processing]);
+  
   // Initialize payment and validate amount
   useEffect(() => {
     const initializePayment = async () => {
+      if (!reservationData || !reservationData.id) {
+        setError('Invalid reservation data');
+        return;
+      }
+
       if (!total || total <= 0) {
-        Alert.alert('Invalid Amount', 'Payment amount must be greater than 0');
-        navigation.goBack();
+        setError('Payment amount must be greater than 0');
         return;
       }
 
       try {
-        await dispatch(createPaymentIntent({
+        setIsInitializing(true);
+        setError(null);
+        
+        // Initialize payment with our backend
+        const result = await dispatch(createPaymentIntent({
           ...reservationData,
           amount: total
         })).unwrap();
+        
+        // Set the payment URL from the response
+        setPaymentUrl(result.authorizationUrl);
+        
         setIsInitializing(false);
       } catch (err) {
-        Alert.alert(
-          'Payment Initialization Failed',
-          'Unable to initialize payment. Please try again.',
-          [{ text: 'Go Back', onPress: () => navigation.goBack() }]
-        );
+        console.error('Payment initialization error:', err);
+        setError(err.message || 'Failed to initialize payment');
+        setIsInitializing(false);
       }
     };
 
@@ -280,37 +98,69 @@ const PaymentScreen = ({ route, navigation }) => {
         dispatch(resetPayment());
       }
     };
-  }, [total, dispatch]);
+  }, [total, dispatch, reservationData]);
 
+  const handleWebViewNavigationStateChange = (navState) => {
+    const { url } = navState;
+    
+    // Check if the URL is our success/callback URL
+    if (url.includes('success') || url.includes('callback')) {
+      setProcessing(true);
+      
+      // Extract reference from URL if needed
+      // This is a simplified example; you may need to parse the actual reference from URL
+      const urlParams = new URL(url);
+      const reference = urlParams.searchParams.get('reference') || '';
+      
+      if (reference) {
+        handlePaymentSuccess({ data: { reference } });
+      } else {
+        setError('Payment reference not found');
+        setProcessing(false);
+      }
+    }
+  };
+  
   // Handle payment success
   const handlePaymentSuccess = async (response) => {
     if (!response?.data?.reference) {
-      Alert.alert('Error', 'Invalid payment reference received');
+      setError('Invalid payment reference received');
+      setProcessing(false);
       return;
     }
 
     dispatch(setReference(response.data.reference));
 
     try {
-      // Verify payment with Paystack and confirm on our backend
+      // Verify payment with backend
       await dispatch(verifyPayment(response.data.reference)).unwrap();
+      
+      // Confirm payment with our reservation system
       await dispatch(confirmPaymentIntent({
         reservationId: reservationData.id,
         paymentReference: response.data.reference
       })).unwrap();
 
+      // Reset reservation state
+      dispatch(resetReservation());
+      
+      // Navigate to success screen
       navigation.replace('PaymentSuccess', { 
         reservationData,
         paymentReference: response.data.reference 
       });
     } catch (err) {
       handlePaymentError(err, response.data.reference);
+    } finally {
+      setProcessing(false);
     }
   };
 
   // Handle payment errors
   const handlePaymentError = (error, reference) => {
     const errorMessage = error?.message || 'An unexpected error occurred';
+    setError(errorMessage);
+    
     Alert.alert(
       'Payment Verification Failed',
       errorMessage,
@@ -322,7 +172,10 @@ const PaymentScreen = ({ route, navigation }) => {
             error: errorMessage
           })
         },
-        { text: 'Try Again', onPress: () => dispatch(resetPayment()) },
+        { text: 'Try Again', onPress: () => {
+          dispatch(resetPayment());
+          initializePayment();
+        }},
         { text: 'Cancel', style: 'cancel', onPress: handlePaymentCancel }
       ]
     );
@@ -335,12 +188,11 @@ const PaymentScreen = ({ route, navigation }) => {
       'Payment Cancelled',
       'Your reservation is not confirmed until payment is completed.',
       [
-        { text: 'Try Again', onPress: () => null },
+        { text: 'Try Again', onPress: () => initializePayment() },
         { 
           text: 'Cancel Reservation', 
           style: 'destructive',
           onPress: () => {
-            // Add cleanup logic here if needed
             navigation.navigate('Home');
           }
         }
@@ -348,47 +200,91 @@ const PaymentScreen = ({ route, navigation }) => {
     );
   };
 
-  if (isProcessing || isInitializing) {
+  // If there's an error, show error view
+  if (error) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#0000ff" />
+      <View style={styles.container}>
+        <Text style={styles.title}>Payment Error</Text>
+        <Text style={styles.errorText}>{error}</Text>
+        <TouchableOpacity 
+          style={styles.button} 
+          onPress={() => navigation.goBack()}
+        >
+          <Text style={styles.buttonText}>Go Back</Text>
+        </TouchableOpacity>
       </View>
     );
   }
 
+  // If loading, show loading indicator
+  if (isProcessing || isInitializing) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={styles.title}>
+          {isInitializing ? 'Initializing Payment' : 'Processing Payment'}
+        </Text>
+        <ActivityIndicator size="large" color="#4682B4" />
+        <Text style={styles.subtitle}>
+          {isInitializing ? 'Please wait...' : 'Please wait while we confirm your payment...'}
+        </Text>
+      </View>
+    );
+  }
+  
+  // If processing payment confirmation
+  if (processing) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={styles.title}>Processing Payment</Text>
+        <ActivityIndicator size="large" color="#4682B4" />
+        <Text style={styles.subtitle}>Please wait while we confirm your payment...</Text>
+      </View>
+    );
+  }
+  
+  // Render payment webview
   return (
     <View style={styles.container}>
-      <Paystack
-        paystackKey={process.env.REACT_APP_PAYSTACK_PUBLIC_KEY}
-        amount={total.toString()}
-        currency="ZAR"
-        billingEmail={reservationData?.email || ""}
-        activityIndicatorColor="green"
-        onCancel={handlePaymentCancel}
-        onSuccess={handlePaymentSuccess}
-        autoStart={true}
-        channels={["card", "bank", "ussd", "qr", "mobile_money"]}
-        metadata={{
-          reservation_id: reservationData?.id,
-          custom_fields: [
-            {
-              display_name: "Guest Name",
-              variable_name: "guest_name",
-              value: reservationData?.name
-            },
-            {
-              display_name: "Number of Guests",
-              variable_name: "guest_count",
-              value: reservationData?.guests
-            },
-            {
-              display_name: "Reservation Date",
-              variable_name: "reservation_date",
-              value: reservationData?.date
-            }
-          ]
+      <View style={styles.header}>
+        <Text style={styles.title}>Complete Payment</Text>
+        <Text style={styles.subtitle}>
+          Reservation for {reservationData.guests} {parseInt(reservationData.guests) === 1 ? 'person' : 'people'} on {reservationData.date} at {reservationData.time}
+        </Text>
+        <Text style={styles.amountText}>Amount: R{total}</Text>
+      </View>
+      
+      <View style={styles.webviewContainer}>
+        <WebView
+          source={{ uri: paymentUrl }}
+          onNavigationStateChange={handleWebViewNavigationStateChange}
+          startInLoadingState={true}
+          renderLoading={() => (
+            <View style={styles.webviewLoading}>
+              <ActivityIndicator size="large" color="#4682B4" />
+              <Text>Loading payment page...</Text>
+            </View>
+          )}
+        />
+      </View>
+      
+      <TouchableOpacity 
+        style={styles.cancelButton} 
+        onPress={() => {
+          Alert.alert(
+            'Cancel Payment',
+            'Are you sure you want to cancel this payment? Your reservation will not be confirmed.',
+            [
+              { text: 'No', style: 'cancel' },
+              { 
+                text: 'Yes', 
+                onPress: handlePaymentCancel 
+              }
+            ]
+          );
         }}
-      />
+      >
+        <Text style={styles.cancelButtonText}>Cancel Payment</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -396,14 +292,85 @@ const PaymentScreen = ({ route, navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff'
+    padding: 20,
+    backgroundColor: '#f5f5f5',
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff'
-  }
+    backgroundColor: '#f5f5f5',
+    padding: 20,
+  },
+  header: {
+    marginBottom: 20,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 16,
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  amountText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  webviewContainer: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  webviewLoading: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+  },
+  button: {
+    backgroundColor: '#4682B4',
+    padding: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  cancelButton: {
+    backgroundColor: '#f8f8f8',
+    padding: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 15,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  cancelButtonText: {
+    color: '#cc0000',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  errorText: {
+    color: '#cc0000',
+    fontSize: 16,
+    textAlign: 'center',
+    marginVertical: 20,
+  },
 });
 
 export default PaymentScreen;
